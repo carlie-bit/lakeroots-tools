@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lake Roots — Purchasing Insight</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --green-dark: #363A2E; --green-mid: #4F5854; --sage: #99BAB4;
+    --cream: #FCFBE4; --gold: #B68036; --white: #FFFFFF;
+    --border: #E8E6D8; --text-main: #2A2D24; --text-light: #6B7068;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text-main); min-height: 100vh; }
+  header { background: var(--green-dark); padding: 20px 32px 16px; display: flex; align-items: baseline; gap: 12px; border-bottom: 3px solid var(--gold); }
+  header .wordmark { font-family: 'Playfair Display', serif; color: var(--cream); font-size: 22px; font-weight: 700; letter-spacing: 0.04em; }
+  header .sub { color: var(--sage); font-size: 11px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; }
+  main { max-width: 960px; margin: 0 auto; padding: 28px 20px 48px; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--green-dark); margin-bottom: 4px; }
+  .page-subtitle { font-size: 13px; color: var(--text-light); margin-bottom: 24px; }
+  .selector-row { display: flex; gap: 12px; align-items: center; margin-bottom: 28px; flex-wrap: wrap; }
+  .selector-row label { font-size: 13px; font-weight: 600; color: var(--green-mid); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+  select { flex: 1; min-width: 260px; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 6px; background: var(--white); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-main); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234F5854' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; cursor: pointer; transition: border-color 0.2s; }
+  select:focus { outline: none; border-color: var(--gold); }
+  .state-msg { text-align: center; padding: 48px 20px; color: var(--text-light); font-size: 14px; }
+  .spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #insight { display: none; }
+  .item-header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+  .item-name { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--green-dark); }
+  .item-meta { font-size: 12px; color: var(--text-light); background: var(--border); padding: 3px 10px; border-radius: 20px; }
+  .margin-note { font-size: 11px; color: var(--text-light); font-style: italic; }
+  .section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sage); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .periods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+  @media (max-width: 600px) { .periods { grid-template-columns: 1fr; } }
+  .period-card { background: var(--white); border: 1.5px solid var(--border); border-radius: 10px; padding: 16px 18px; position: relative; overflow: hidden; }
+  .period-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .period-card.p7::before { background: var(--sage); }
+  .period-card.p30::before { background: var(--gold); }
+  .period-card.pAll::before { background: var(--green-mid); }
+  .period-title { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 12px; }
+  .p7 .period-title { color: var(--sage); } .p30 .period-title { color: var(--gold); } .pAll .period-title { color: var(--green-mid); }
+  .metric-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+  .metric-label { font-size: 11px; color: var(--text-light); }
+  .metric-value { font-size: 18px; font-weight: 600; color: var(--text-main); font-variant-numeric: tabular-nums; }
+  .metric-value.profit { color: var(--green-mid); }
+  .metric-divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+  .insights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .insight-chip { background: var(--green-dark); border-radius: 8px; padding: 12px 14px; color: var(--cream); }
+  .insight-chip .chip-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sage); margin-bottom: 4px; }
+  .insight-chip .chip-val { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .insight-chip .chip-sub { font-size: 10px; color: var(--sage); margin-top: 2px; }
+  .chart-wrap { background: var(--white); border: 1.5px solid var(--border); border-radius: 10px; padding: 20px 20px 16px; }
+  .chart-container { position: relative; height: 260px; }
+  .tool-footer { text-align: center; margin-top: 28px; font-size: 11px; color: var(--text-light); }
+</style>
+</head>
+<body>
+<header>
+  <span class="wordmark">Lake Roots</span>
+  <span class="sub">Purchasing Insight</span>
+</header>
+<main>
+  <p class="page-title">Retail Item Lookup</p>
+  <p class="page-subtitle">Select a retail item to view sales velocity, revenue, and trend history.</p>
+  <div class="selector-row">
+    <label for="itemSelect">Item</label>
+    <select id="itemSelect"><option value="">— Loading items… —</option></select>
+  </div>
+  <div id="loadingState" class="state-msg" style="display:none;"><div class="spinner"></div>Fetching data…</div>
+  <div id="emptyState" class="state-msg">Pick an item above to see purchasing insights.</div>
+  <div id="insight">
+    <div class="item-header">
+      <span class="item-name" id="iName"></span>
+      <span class="item-meta" id="iFirstDate"></span>
+      <span class="margin-note" id="iMarginNote"></span>
+    </div>
+    <p class="section-label">Sales by Period</p>
+    <div class="periods">
+      <div class="period-card p7">
+        <p class="period-title">Last 7 Days</p>
+        <div class="metric-row"><span class="metric-label">Units</span><span class="metric-value" id="qty7"></span></div>
+        <hr class="metric-divider"/>
+        <div class="metric-row"><span class="metric-label">Revenue</span><span class="metric-value" id="rev7"></span></div>
+        <div class="metric-row"><span class="metric-label">Profit</span><span class="metric-value profit" id="pro7"></span></div>
+      </div>
+      <div class="period-card p30">
+        <p class="period-title">Last 30 Days</p>
+        <div class="metric-row"><span class="metric-label">Units</span><span class="metric-value" id="qty30"></span></div>
+        <hr class="metric-divider"/>
+        <div class="metric-row"><span class="metric-label">Revenue</span><span class="metric-value" id="rev30"></span></div>
+        <div class="metric-row"><span class="metric-label">Profit</span><span class="metric-value profit" id="pro30"></span></div>
+      </div>
+      <div class="period-card pAll">
+        <p class="period-title">All Time</p>
+        <div class="metric-row"><span class="metric-label">Units</span><span class="metric-value" id="qtyAll"></span></div>
+        <hr class="metric-divider"/>
+        <div class="metric-row"><span class="metric-label">Revenue</span><span class="metric-value" id="revAll"></span></div>
+        <div class="metric-row"><span class="metric-label">Profit</span><span class="metric-value profit" id="proAll"></span></div>
+      </div>
+    </div>
+    <p class="section-label">Order Insights</p>
+    <div class="insights-grid">
+      <div class="insight-chip"><p class="chip-label">Avg / Day</p><p class="chip-val" id="oAvg"></p><p class="chip-sub">units per selling day</p></div>
+      <div class="insight-chip"><p class="chip-label">Peak Day</p><p class="chip-val" id="oMax"></p><p class="chip-sub">units on <span id="oMaxDate"></span></p></div>
+      <div class="insight-chip"><p class="chip-label">First Sale</p><p class="chip-val" id="oFirst"></p><p class="chip-sub">at Lake Roots</p></div>
+    </div>
+    <p class="section-label">Weekly Trend</p>
+    <div class="chart-wrap"><div class="chart-container"><canvas id="trendChart"></canvas></div></div>
+  </div>
+  <p class="tool-footer">Data refreshes every 4 hours via Lake Roots Command Center · Profit estimates use 40% margin unless ME cost data is available</p>
+</main>
+<script>
+const API_URL = "/.netlify/functions/proxy";
+let chartInstance = null;
+
+window.addEventListener("DOMContentLoaded", async () => {
+  const sel = document.getElementById("itemSelect");
+  try {
+    const res  = await fetch(API_URL + "?action=items");
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    sel.innerHTML = '<option value="">— Select an item —</option>';
+    data.items.forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name; opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  } catch (err) {
+    sel.innerHTML = '<option value="">⚠ Could not load items</option>';
+  }
+  sel.addEventListener("change", onItemSelect);
+});
+
+async function onItemSelect() {
+  const name    = document.getElementById("itemSelect").value;
+  const insight = document.getElementById("insight");
+  const loading = document.getElementById("loadingState");
+  const empty   = document.getElementById("emptyState");
+  if (!name) { insight.style.display="none"; loading.style.display="none"; empty.style.display="block"; return; }
+  insight.style.display="none"; empty.style.display="none"; loading.style.display="block";
+  try {
+    const res = await fetch(API_URL + "?action=detail&item=" + encodeURIComponent(name));
+    const d   = await res.json();
+    if (d.error) throw new Error(d.error);
+    renderInsight(d);
+  } catch (err) {
+    loading.style.display="none"; empty.style.display="block";
+    empty.innerHTML = "<p>⚠ Error: " + err.message + "</p>";
+  }
+}
+
+function renderInsight(d) {
+  document.getElementById("iName").textContent      = d.item;
+  document.getElementById("iFirstDate").textContent = "First sold " + d.firstSaleDate;
+  document.getElementById("iMarginNote").textContent = "Profit: " + d.marginNote;
+  const s = d.summary;
+  document.getElementById("qty7").textContent   = fmt(s.last7.qty,   false);
+  document.getElementById("rev7").textContent   = fmt(s.last7.rev,   true);
+  document.getElementById("pro7").textContent   = fmt(s.last7.profit,true);
+  document.getElementById("qty30").textContent  = fmt(s.last30.qty,  false);
+  document.getElementById("rev30").textContent  = fmt(s.last30.rev,  true);
+  document.getElementById("pro30").textContent  = fmt(s.last30.profit,true);
+  document.getElementById("qtyAll").textContent = fmt(s.allTime.qty,  false);
+  document.getElementById("revAll").textContent = fmt(s.allTime.rev,  true);
+  document.getElementById("proAll").textContent = fmt(s.allTime.profit,true);
+  const o = d.orderInsights;
+  document.getElementById("oAvg").textContent     = fmt(o.avgPerDay,    false, 1);
+  document.getElementById("oMax").textContent     = fmt(o.maxSingleDay, false);
+  document.getElementById("oMaxDate").textContent = o.maxSingleDate;
+  document.getElementById("oFirst").textContent   = d.firstSaleDate;
+  buildChart(d.weeklyChart);
+  document.getElementById("loadingState").style.display = "none";
+  document.getElementById("insight").style.display      = "block";
+}
+
+function buildChart(weeks) {
+  if (chartInstance) chartInstance.destroy();
+  const ctx = document.getElementById("trendChart").getContext("2d");
+  chartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: weeks.map(w => w.label),
+      datasets: [
+        { label:"Revenue ($)", data:weeks.map(w=>w.rev), backgroundColor:"rgba(182,128,54,0.25)", borderColor:"#B68036", borderWidth:2, borderRadius:3, yAxisID:"yRev", order:2, type:"bar" },
+        { label:"Profit ($)",  data:weeks.map(w=>w.profit), backgroundColor:"rgba(79,88,84,0.18)", borderColor:"#4F5854", borderWidth:2, borderRadius:3, yAxisID:"yRev", order:3, type:"bar" },
+        { label:"Units Sold",  data:weeks.map(w=>w.qty), borderColor:"#99BAB4", borderWidth:2.5, pointBackgroundColor:"#99BAB4", pointRadius:4, tension:0.35, fill:false, yAxisID:"yQty", order:1, type:"line" }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:"index", intersect:false },
+      plugins:{ legend:{ position:"top", labels:{ font:{family:"'DM Sans',sans-serif",size:11}, color:"#6B7068", boxWidth:12, padding:16 } },
+        tooltip:{ backgroundColor:"#363A2E", callbacks:{ label: ctx => { const v=ctx.parsed.y; return ctx.dataset.label.includes("$") ? " "+ctx.dataset.label+": $"+v.toFixed(2) : " "+ctx.dataset.label+": "+v; } } } },
+      scales:{
+        x:{ grid:{color:"rgba(0,0,0,0.05)"}, ticks:{font:{family:"'DM Sans',sans-serif",size:10},color:"#6B7068"} },
+        yRev:{ position:"left", grid:{color:"rgba(0,0,0,0.05)"}, ticks:{font:{family:"'DM Sans',sans-serif",size:10},color:"#6B7068",callback:v=>"$"+v} },
+        yQty:{ position:"right", grid:{drawOnChartArea:false}, ticks:{font:{family:"'DM Sans',sans-serif",size:10},color:"#99BAB4"} }
+      }
+    }
+  });
+}
+
+function fmt(val, isCurrency, decimals=0) {
+  if (val==null||isNaN(val)) return "—";
+  if (isCurrency) return "$"+val.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+  return decimals>0 ? val.toFixed(decimals) : Math.round(val).toLocaleString("en-US");
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lake Roots — Top 10 Weekly Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --green-dark:#363A2E; --green-mid:#4F5854; --sage:#99BAB4;
+    --cream:#FCFBE4; --gold:#B68036; --white:#FFFFFF;
+    --border:#E8E6D8; --text-main:#2A2D24; --text-light:#6B7068;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text-main); min-height:100vh; }
+  header { background:var(--green-dark); padding:20px 32px 16px; display:flex; align-items:baseline; gap:12px; border-bottom:3px solid var(--gold); }
+  header .wordmark { font-family:'Playfair Display',serif; color:var(--cream); font-size:22px; font-weight:700; letter-spacing:0.04em; }
+  header .sub { color:var(--sage); font-size:11px; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; }
+  main { max-width:1080px; margin:0 auto; padding:28px 20px 56px; }
+  .page-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px; flex-wrap:wrap; gap:10px; }
+  .page-title { font-family:'Playfair Display',serif; font-size:26px; color:var(--green-dark); line-height:1.2; }
+  .page-subtitle { font-size:13px; color:var(--text-light); margin-top:3px; }
+  .meta-badge { background:var(--green-dark); color:var(--sage); font-size:11px; padding:5px 14px; border-radius:20px; letter-spacing:0.08em; white-space:nowrap; }
+  .section-label { font-size:10px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:var(--sage); margin-bottom:12px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+  .chart-tabs { display:flex; gap:6px; margin-bottom:14px; }
+  .chart-tab { padding:6px 16px; border-radius:20px; font-size:12px; font-weight:500; cursor:pointer; border:1.5px solid var(--border); background:var(--white); color:var(--text-light); transition:all 0.15s; }
+  .chart-tab.active { background:var(--green-dark); border-color:var(--green-dark); color:var(--cream); }
+  .chart-card { background:var(--white); border:1.5px solid var(--border); border-radius:12px; padding:22px 22px 16px; margin-bottom:28px; }
+  .chart-container { position:relative; height:300px; }
+  .table-wrap { overflow-x:auto; margin-bottom:28px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; background:var(--white); border-radius:12px; overflow:hidden; border:1.5px solid var(--border); }
+  thead { background:var(--green-dark); color:var(--cream); }
+  thead th { padding:10px 12px; text-align:right; font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; white-space:nowrap; }
+  thead th:first-child { text-align:left; } thead th:nth-child(2) { text-align:left; }
+  .th-group { background:var(--green-mid); color:var(--sage); text-align:center !important; font-size:9px; letter-spacing:0.18em; padding:5px 8px !important; border-bottom:1px solid rgba(255,255,255,0.1); }
+  tbody tr { border-bottom:1px solid var(--border); }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr:hover { background:rgba(153,186,180,0.08); }
+  tbody td { padding:11px 12px; text-align:right; white-space:nowrap; }
+  tbody td:first-child { text-align:center; }
+  tbody td:nth-child(2) { text-align:left; font-weight:500; max-width:200px; overflow:hidden; text-overflow:ellipsis; }
+  td.profit { color:var(--green-mid); font-weight:500; }
+  td.rank-badge { font-family:'Playfair Display',serif; font-size:15px; color:var(--gold); font-weight:700; width:36px; }
+  .swatch { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:7px; vertical-align:middle; }
+  .state-msg { text-align:center; padding:60px 20px; color:var(--text-light); font-size:14px; }
+  .spinner { width:30px; height:30px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 14px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .tool-footer { text-align:center; font-size:11px; color:var(--text-light); margin-top:12px; }
+  .reload-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 18px; background:transparent; border:1.5px solid var(--gold); border-radius:6px; color:var(--gold); font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; cursor:pointer; letter-spacing:0.06em; transition:all 0.15s; }
+  .reload-btn:hover { background:var(--gold); color:var(--white); }
+</style>
+</head>
+<body>
+<header>
+  <span class="wordmark">Lake Roots</span>
+  <span class="sub">Top 10 Weekly Report</span>
+</header>
+<main>
+  <div id="loadingState" class="state-msg"><div class="spinner"></div>Loading this week's top sellers…</div>
+  <div id="content" style="display:none;">
+    <div class="page-header">
+      <div>
+        <p class="page-title">Top 10 Items This Week</p>
+        <p class="page-subtitle" id="dateRange">—</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <span class="meta-badge" id="generatedAt">—</span>
+        <button class="reload-btn" onclick="loadData()">↻ Refresh</button>
+      </div>
+    </div>
+    <p class="section-label">Weekly Trend — Toggle Metric Below</p>
+    <div class="chart-tabs">
+      <button class="chart-tab active" onclick="switchTab('qty',this)">Units</button>
+      <button class="chart-tab" onclick="switchTab('rev',this)">Revenue</button>
+      <button class="chart-tab" onclick="switchTab('profit',this)">Profit</button>
+    </div>
+    <div class="chart-card"><div class="chart-container"><canvas id="trendChart"></canvas></div></div>
+    <p class="section-label">Item Detail — Current Week · MTD · YTD</p>
+    <div class="table-wrap">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th rowspan="2" style="width:36px;">#</th>
+            <th rowspan="2" style="text-align:left;min-width:160px;">Item</th>
+            <th colspan="3" class="th-group">Week to Date</th>
+            <th colspan="3" class="th-group">Month to Date</th>
+            <th colspan="3" class="th-group">Year to Date</th>
+          </tr>
+          <tr>
+            <th>Units</th><th>Rev</th><th>Profit</th>
+            <th>Units</th><th>Rev</th><th>Profit</th>
+            <th>Units</th><th>Rev</th><th>Profit</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <p class="tool-footer">Ranked by units sold in current week · Profit estimated at 40% margin unless ME cost data available · Refreshes every 4 hours</p>
+</main>
+<script>
+const API_URL = "/.netlify/functions/proxy";
+const PALETTE = ["#B68036","#99BAB4","#4F5854","#C0845A","#7A9E7E","#8B6F47","#5B8FA8","#A68B5B","#6B8F71","#9B7B6A"];
+let reportData = null;
+let chartInstance = null;
+let activeMetric = "qty";
+
+window.addEventListener("DOMContentLoaded", loadData);
+
+async function loadData() {
+  document.getElementById("loadingState").style.display = "block";
+  document.getElementById("content").style.display      = "none";
+  try {
+    const res  = await fetch(API_URL + "?action=top10");
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    reportData = data;
+    render(data);
+  } catch (err) {
+    document.getElementById("loadingState").innerHTML = "<p style='color:#C0845A;'>⚠ Could not load data: " + err.message + "</p>";
+  }
+}
+
+function render(d) {
+  document.getElementById("dateRange").textContent  = "Week of " + d.weekStartDate + " · through " + d.asOfDate;
+  document.getElementById("generatedAt").textContent = "Updated " + d.generatedAt;
+  buildTable(d.items);
+  buildChart(d, "qty");
+  document.getElementById("loadingState").style.display = "none";
+  document.getElementById("content").style.display      = "block";
+}
+
+function buildTable(items) {
+  const tbody = document.getElementById("tableBody");
+  tbody.innerHTML = "";
+  items.forEach((item, i) => {
+    const color = PALETTE[i] || "#4F5854";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="rank-badge">${item.rank}</td>
+      <td><span class="swatch" style="background:${color}"></span>${esc(item.name)}</td>
+      <td>${fmt(item.wtd.qty,false)}</td><td>${fmt(item.wtd.rev,true)}</td><td class="profit">${fmt(item.wtd.profit,true)}</td>
+      <td>${fmt(item.mtd.qty,false)}</td><td>${fmt(item.mtd.rev,true)}</td><td class="profit">${fmt(item.mtd.profit,true)}</td>
+      <td>${fmt(item.ytd.qty,false)}</td><td>${fmt(item.ytd.rev,true)}</td><td class="profit">${fmt(item.ytd.profit,true)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function buildChart(d, metric) {
+  if (chartInstance) chartInstance.destroy();
+  const datasets = d.items.map((item, i) => ({
+    label: item.name.length > 22 ? item.name.substring(0,22)+"…" : item.name,
+    data:  item.weeklySeries.map(w => w[metric]),
+    backgroundColor: hexAlpha(PALETTE[i], 0.75),
+    borderColor: PALETTE[i], borderWidth:1.5, borderRadius:3
+  }));
+  const ctx = document.getElementById("trendChart").getContext("2d");
+  const yLabel = metric==="qty" ? "Units Sold" : metric==="rev" ? "Revenue ($)" : "Profit ($)";
+  chartInstance = new Chart(ctx, {
+    type:"bar",
+    data:{ labels:d.weekLabels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:"index", intersect:false },
+      plugins:{
+        legend:{ position:"bottom", labels:{ font:{family:"'DM Sans',sans-serif",size:10}, color:"#6B7068", boxWidth:10, padding:12, usePointStyle:true, pointStyle:"circle" } },
+        tooltip:{ backgroundColor:"#363A2E", callbacks:{ label: ctx => { const v=ctx.parsed.y; if(v===0) return null; return metric==="qty" ? " "+ctx.dataset.label+": "+v+" units" : " "+ctx.dataset.label+": $"+v.toFixed(2); } } }
+      },
+      scales:{
+        x:{ stacked:true, grid:{display:false}, ticks:{font:{family:"'DM Sans',sans-serif",size:10},color:"#6B7068"} },
+        y:{ stacked:true, grid:{color:"rgba(0,0,0,0.05)"}, title:{display:true,text:yLabel,font:{family:"'DM Sans',sans-serif",size:10},color:"#6B7068"}, ticks:{font:{family:"'DM Sans',sans-serif",size:10},color:"#6B7068",callback:v=>metric==="qty"?v:"$"+v} }
+      }
+    }
+  });
+}
+
+function switchTab(metric, btn) {
+  activeMetric = metric;
+  document.querySelectorAll(".chart-tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  if (reportData) buildChart(reportData, metric);
+}
+
+function fmt(val, isCurrency) {
+  if (val==null||isNaN(val)) return "—";
+  if (isCurrency) return "$"+parseFloat(val).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+  return Math.round(val).toLocaleString("en-US");
+}
+function esc(str) { return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function hexAlpha(hex, alpha) {
+  const r=parseInt(hex.slice(1,3),16); const g=parseInt(hex.slice(3,5),16); const b=parseInt(hex.slice(5,7),16);
+  return "rgba("+r+","+g+","+b+","+alpha+")";
+}
+</script>
+</body>
+</html>
