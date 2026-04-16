@@ -26,10 +26,26 @@ function fetchWithRedirect(url, redirectCount, resolve) {
   });
 }
 
-function slingFetch(url, headers, resolve) {
+function slingFetch(url, authHeader, resolve, redirectCount) {
+  if (!redirectCount) redirectCount = 0;
+  if (redirectCount > 10) {
+    resolve({ statusCode: 500, body: JSON.stringify({ error: "Too many redirects" }) });
+    return;
+  }
   var options = require("url").parse(url);
-  options.headers = headers;
+  options.headers = {
+    "Authorization": authHeader,
+    "User-Agent": "Mozilla/5.0",
+    "Accept": "application/json",
+    "Content-Type": "application/json"
+  };
   https.get(options, function(res) {
+    if (res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 303) {
+      var location = res.headers.location;
+      if (!location) { resolve({ statusCode: 500, body: JSON.stringify({ error: "Redirect with no location" }) }); return; }
+      slingFetch(location, authHeader, resolve, redirectCount + 1);
+      return;
+    }
     var data = "";
     res.on("data", function(chunk) { data += chunk; });
     res.on("end", function() {
@@ -62,7 +78,7 @@ exports.handler = async function(event) {
       + "&from=" + encodeURIComponent(from + "T00:00:00")
       + "&to=" + encodeURIComponent(to + "T23:59:59");
     return new Promise(function(resolve) {
-      slingFetch(slingUrl, { "Authorization": process.env.SLING_API_KEY }, resolve);
+      slingFetch(slingUrl, process.env.SLING_API_KEY, resolve);
     });
   }
 
