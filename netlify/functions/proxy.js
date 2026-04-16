@@ -26,6 +26,48 @@ function fetchWithRedirect(url, redirectCount, resolve) {
   });
 }
 
+function slingLogin() {
+  return new Promise(function(resolve, reject) {
+    var postData = JSON.stringify({
+      email: process.env.SLING_EMAIL,
+      password: process.env.SLING_PASSWORD
+    });
+    var options = require("url").parse("https://api.sling.is/account/login");
+    options.method = "POST";
+    options.headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "User-Agent": "Mozilla/5.0",
+      "Content-Length": Buffer.byteLength(postData)
+    };
+    var req = https.request(options, function(res) {
+      var data = "";
+      res.on("data", function(chunk) { data += chunk; });
+      res.on("end", function() {
+        if (res.statusCode >= 400) {
+          reject(new Error("Sling login failed (" + res.statusCode + "): " + data.slice(0, 500)));
+          return;
+        }
+        var auth = res.headers["authorization"];
+        if (!auth) {
+          try {
+            var body = JSON.parse(data);
+            auth = body.token || body.authorization || body.Authorization;
+          } catch(e) {}
+        }
+        if (!auth) {
+          reject(new Error("No auth token in Sling login response. Headers: " + JSON.stringify(res.headers) + " Body: " + data.slice(0, 500)));
+          return;
+        }
+        resolve(auth);
+      });
+    });
+    req.on("error", function(err) { reject(err); });
+    req.write(postData);
+    req.end();
+  });
+}
+
 function slingFetch(url, authHeader, resolve, redirectCount) {
   if (!redirectCount) redirectCount = 0;
   if (redirectCount > 10) {
@@ -77,9 +119,18 @@ exports.handler = async function(event) {
     var slingUrl = "https://api.sling.is/v1/shifts?orgs=1121197"
       + "&from=" + encodeURIComponent(from + "T00:00:00")
       + "&to=" + encodeURIComponent(to + "T23:59:59");
-    return new Promise(function(resolve) {
-      slingFetch(slingUrl, process.env.SLING_API_KEY, resolve);
-    });
+    try {
+      var token = await slingLogin();
+      return new Promise(function(resolve) {
+        slingFetch(slingUrl, token, resolve);
+      });
+    } catch(err) {
+      return {
+        statusCode: 502,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({ error: "Sling login failed: " + err.message })
+      };
+    }
   }
 
   var item = params.item || "";
