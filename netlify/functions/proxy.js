@@ -133,6 +133,15 @@ exports.handler = async function(event) {
     }
   }
 
+  var VALID_ACTIONS = ["snapshot","today","reviews","dowavg","topwtd","topmtd","topytd","retailwtd","retailmtd","retailytd","intake"];
+  if (VALID_ACTIONS.indexOf(action) === -1) {
+    return {
+      statusCode: 400,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      body: JSON.stringify({ error: "Unknown action: " + action })
+    };
+  }
+
   var item = params.item || "";
   var GAS_URL = "https://script.google.com/macros/s/AKfycbze-3pGiyMcJigvO_N0MPs4E5tnvI3AZz7FO4oNP30d8DKW8p1duwB7jTgdcBgKIEQMnw/exec";
   var url = GAS_URL + "?action=" + action;
