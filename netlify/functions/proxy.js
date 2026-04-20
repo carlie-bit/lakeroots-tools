@@ -133,7 +133,7 @@ exports.handler = async function(event) {
     }
   }
 
-  var VALID_ACTIONS = ["snapshot","today","reviews","dowavg","topwtd","topmtd","topytd","retailwtd","retailmtd","retailytd","intake"];
+  var VALID_ACTIONS = ["snapshot","today","reviews","dowavg","topwtd","topmtd","topytd","retailwtd","retailmtd","retailytd","intake","openitems"];
   if (VALID_ACTIONS.indexOf(action) === -1) {
     return {
       statusCode: 400,
