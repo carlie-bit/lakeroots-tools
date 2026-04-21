@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lake Roots — Master Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Source+Serif+4:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Source Serif 4',Georgia,serif; background:linear-gradient(180deg,#FCFBE4,#F7F5E8); min-height:100vh; }
+.header { background:#363A2E; padding:24px 20px 18px; position:sticky; top:0; z-index:100; }
+.header-inner { max-width:1100px; margin:0 auto; }
+.title-row { display:flex; align-items:baseline; gap:10px; margin-bottom:4px; }
+.title-main { font-family:'Playfair Display',Georgia,serif; font-size:24px; font-weight:700; color:#FCFBE4; }
+.title-sub { font-size:13px; color:#99BAB4; letter-spacing:2px; text-transform:uppercase; font-weight:600; }
+.status-row { font-size:12px; color:#EFDBB2; opacity:0.8; margin-bottom:14px; }
+.status-live { color:#6B9E7E; margin-left:10px; }
+.status-snap { color:#C9A45C; margin-left:10px; }
+.status-load { color:#99BAB4; margin-left:10px; opacity:0.6; }
+.layers { display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
+.layers-label { font-size:10px; color:#99BAB4; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; margin-right:2px; }
+.layer-btn { padding:4px 12px; border-radius:18px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.15s; border:2px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:rgba(239,219,178,0.35); opacity:0.55; }
+.layer-btn.on { opacity:1; }
+.layer-dot { width:7px; height:7px; border-radius:50%; display:inline-block; background:rgba(255,255,255,0.15); }
+.day-headers { max-width:1100px; margin:0 auto; padding:0 14px; }
+.day-header-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); padding:10px 0 2px; position:sticky; top:110px; z-index:90; background:#FCFBE4; }
+.day-hdr { text-align:center; font-size:10px; font-weight:700; color:#583B1F; letter-spacing:1.5px; text-transform:uppercase; padding:3px 0; }
+.weeks { max-width:1100px; margin:0 auto; padding:0 14px 50px; }
+.month-hdr { padding:20px 0 6px; border-bottom:2px solid #B68036; margin-bottom:6px; }
+.month-hdr span { font-family:'Playfair Display',Georgia,serif; font-size:20px; font-weight:700; color:#363A2E; }
+.week-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); background:rgba(255,255,255,0.6); border-radius:8px; border:1px solid rgba(54,58,46,0.08); margin-bottom:5px; box-shadow:0 1px 3px rgba(0,0,0,0.04); overflow:hidden; }
+.day-cell { padding:6px 5px; min-height:70px; border-right:1px solid rgba(54,58,46,0.06); }
+.day-cell:last-child { border-right:none; }
+.day-cell.today { background:rgba(153,186,180,0.15); }
+.day-cell.weekend { background:rgba(239,219,178,0.1); }
+.day-num { font-size:12px; font-weight:600; color:#363A2E; margin-bottom:3px; display:flex; align-items:center; gap:3px; }
+.day-num.today { font-weight:800; color:#99BAB4; }
+.today-dot { width:5px; height:5px; border-radius:50%; background:#99BAB4; }
+.evt { border-radius:0 4px 4px 0; padding:3px 5px; margin-bottom:2px; font-size:10px; font-weight:600; line-height:1.35; word-wrap:break-word; overflow-wrap:break-word; white-space:normal; }
+.evt-note { font-size:9px; font-weight:400; opacity:0.7; margin-top:1px; line-height:1.3; word-wrap:break-word; overflow-wrap:break-word; }
+.footer { background:#363A2E; padding:16px 20px; text-align:center; }
+.footer-text { font-size:10px; color:#99BAB4; letter-spacing:0.8px; max-width:800px; margin:0 auto; line-height:1.5; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="title-row">
+      <span class="title-main">Lake Roots</span>
+      <span class="title-sub">Master Calendar</span>
+    </div>
+    <div class="status-row" id="statusRow">
+      April – September 2026
+      <span class="status-load" id="statusBadge">○ Connecting to Google Calendar…</span>
+    </div>
+    <div class="layers" id="layerBtns"></div>
+  </div>
+</div>
+
+<div class="day-headers">
+  <div class="day-header-grid" id="dayHeaders"></div>
+</div>
+
+<div class="weeks" id="weeksContainer"></div>
+
+<div class="footer">
+  <div class="footer-text" id="footerText">Loading…</div>
+</div>
+
+<script>
+const PROXY = "https://effervescent-bienenstitch-c0ba8a.netlify.app/.netlify/functions/proxy";
+const CATS = {
+  lr: { label:"Lake Roots", bg:"#E2F0E9", border:"#6B9E7E", text:"#2D5A3E" },
+  holiday: { label:"Holiday", bg:"#F9E4E4", border:"#D4868A", text:"#8B3A3E" },
+  school: { label:"School", bg:"#E3ECF6", border:"#7BA3CC", text:"#2E5580" },
+  local: { label:"Local / Community", bg:"#FBF0DA", border:"#C9A45C", text:"#6B5420" },
+  deadline: { label:"LR Deadline", bg:"#F5E6F0", border:"#B07AAC", text:"#6B3A68" },
+};
+
+const STATIC = [
+  {d:"2026-05-05",c:"holiday",t:"Cinco de Mayo"},{d:"2026-05-10",c:"holiday",t:"Mother's Day"},
+  {d:"2026-05-25",c:"holiday",t:"Memorial Day"},{d:"2026-06-14",c:"holiday",t:"Flag Day"},
+  {d:"2026-06-19",c:"holiday",t:"Juneteenth",n:"Federal holiday"},
+  {d:"2026-06-21",c:"holiday",t:"Summer Solstice / Father's Day"},
+  {d:"2026-07-04",c:"holiday",t:"Independence Day",n:"Parade + fireworks"},
+  {d:"2026-09-07",c:"holiday",t:"Labor Day"},
+  {d:"2026-04-22",c:"school",t:"D47 Early Release",n:"Grades K-8"},
+  {d:"2026-05-13",c:"school",t:"D47 Early Release",n:"Grades K-8"},
+  {d:"2026-05-20",c:"school",t:"D47 Last Day PreK/K"},
+  {d:"2026-05-20",c:"school",t:"D155 Last Day"},
+  {d:"2026-05-21",c:"school",t:"D47 Last Day 1-8"},
+  {d:"2026-08-18",c:"school",t:"D47 First Day 1-8"},
+  {d:"2026-08-19",c:"school",t:"D47 First Day PreK/K"},
+  {d:"2026-04-16",c:"local",t:"Women in Wealth",n:"Fork It Foods, 6pm"},
+  {d:"2026-04-18",c:"local",t:"GreenRoom Improv",n:"Raue Center, 7pm"},
+  {d:"2026-04-24",c:"local",t:"4th Fridays Art Show",n:"The Dole, $10 entry"},
+  {d:"2026-04-25",c:"local",t:"BMW Cars & Coffee",n:"BMW of CL, 9am"},
+  {d:"2026-05-01",c:"local",t:"John Primer Blues Concert",n:"The Dole, 6pm"},
+  {d:"2026-06-13",c:"local",t:"Downtown Farmers Market Opens",n:"Sat 8am–1pm thru Sep 26"},
+  {d:"2026-07-02",c:"local",t:"Lakeside Festival Begins",n:"The Dole — 4 days"},
+  {d:"2026-07-04",c:"local",t:"Lakeside Festival + Fireworks"},
+  {d:"2026-09-26",c:"local",t:"Johnny Appleseed Festival",n:"Biggest downtown event"},
+  {d:"2026-05-31",c:"deadline",t:"Liquor License Renewal",n:"Class 29 #2025-125"},
+];
+
+let layers = { lr:true, deadline:false, holiday:false, school:false, local:false };
+let lrEvents = [];
+let status = "loading";
+
+function parseTime(item) {
+  if (!item.start || !item.start.dateTime) return null;
+  var dt = new Date(item.start.dateTime);
+  var h = dt.getHours(), m = dt.getMinutes();
+  var h12 = h % 12 || 12, ap = h >= 12 ? "pm" : "am";
+  var ms = m > 0 ? ":" + String(m).padStart(2,"0") : "";
+  var t = h12 + ms + ap;
+  if (item.end && item.end.dateTime) {
+    var e = new Date(item.end.dateTime);
+    var eh = e.getHours(), em = e.getMinutes();
+    var eh12 = eh % 12 || 12, eap = eh >= 12 ? "pm" : "am";
+    var ems = em > 0 ? ":" + String(em).padStart(2,"0") : "";
+    t += "–" + eh12 + ems + eap;
+  }
+  return t;
+}
+
+function fmt(d) {
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+
+function getWeeks(start, end) {
+  var weeks = [], c = new Date(start);
+  var day = c.getDay(); c.setDate(c.getDate() + (day === 0 ? -6 : 1 - day));
+  var e = new Date(end);
+  while (c <= e) {
+    var w = [];
+    for (var i = 0; i < 7; i++) { w.push(new Date(c)); c.setDate(c.getDate()+1); }
+    weeks.push(w);
+  }
+  return weeks;
+}
+
+function isToday(d) {
+  var t = new Date();
+  return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate();
+}
+
+function eventsFor(ds) {
+  var all = lrEvents.concat(STATIC.map(function(e){return{date:e.d,cat:e.c,title:e.t,note:e.n||null};}));
+  return all.filter(function(e){ return e.date===ds && layers[e.cat]; });
+}
+
+function render() {
+  var weeks = getWeeks("2026-04-13","2026-09-27");
+  var DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+  // Status
+  var badge = document.getElementById("statusBadge");
+  if (status==="live") { badge.className="status-live"; badge.textContent="● Live from Google Calendar"; }
+  else if (status==="snapshot") { badge.className="status-snap"; badge.textContent="● Snapshot — awaiting proxy"; }
+  else { badge.className="status-load"; badge.textContent="○ Connecting…"; }
+
+  // Layer buttons
+  var lb = document.getElementById("layerBtns");
+  lb.innerHTML = '<span class="layers-label">Layers:</span>';
+  Object.keys(CATS).forEach(function(k){
+    var v = CATS[k], on = layers[k];
+    var btn = document.createElement("button");
+    btn.className = "layer-btn" + (on ? " on" : "");
+    btn.style.border = on ? "2px solid "+v.border : "2px solid rgba(255,255,255,0.12)";
+    btn.style.background = on ? v.bg : "rgba(255,255,255,0.04)";
+    btn.style.color = on ? v.text : "rgba(239,219,178,0.35)";
+    btn.innerHTML = '<span class="layer-dot" style="background:'+(on?v.border:"rgba(255,255,255,0.15)")+'"></span>'+v.label+' <span style="font-size:9px;opacity:0.65">'+(on?"ON":"OFF")+'</span>';
+    btn.onclick = function(){ layers[k]=!layers[k]; render(); };
+    lb.appendChild(btn);
+  });
+
+  // Day headers
+  var dh = document.getElementById("dayHeaders");
+  dh.innerHTML = "";
+  DAYS.forEach(function(d){ var el=document.createElement("div"); el.className="day-hdr"; el.textContent=d; dh.appendChild(el); });
+
+  // Weeks
+  var wc = document.getElementById("weeksContainer");
+  wc.innerHTML = "";
+  var prevMonth = -1;
+
+  weeks.forEach(function(week){
+    var mid = week[3], thisMonth = mid.getMonth();
+    if (thisMonth !== prevMonth) {
+      prevMonth = thisMonth;
+      var mh = document.createElement("div"); mh.className="month-hdr";
+      var ms = document.createElement("span");
+      ms.textContent = mid.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+      mh.appendChild(ms); wc.appendChild(mh);
+    }
+
+    var grid = document.createElement("div"); grid.className="week-grid";
+    week.forEach(function(day, di){
+      var ds = fmt(day);
+      var evts = eventsFor(ds);
+      var td = isToday(day);
+      var we = di >= 5;
+
+      var cell = document.createElement("div");
+      cell.className = "day-cell" + (td?" today":"") + (we&&!td?" weekend":"");
+
+      var num = document.createElement("div");
+      num.className = "day-num" + (td?" today":"");
+      if (td) num.innerHTML = '<span class="today-dot"></span>' + day.getDate();
+      else num.textContent = day.getDate();
+      cell.appendChild(num);
+
+      evts.forEach(function(evt){
+        var cat = CATS[evt.cat];
+        var el = document.createElement("div");
+        el.className = "evt";
+        el.style.background = cat.bg;
+        el.style.borderLeft = "3px solid " + cat.border;
+        el.style.color = cat.text;
+        el.textContent = evt.title;
+        if (evt.note) {
+          var n = document.createElement("div");
+          n.className = "evt-note";
+          n.style.color = cat.text;
+          n.textContent = evt.note;
+          el.appendChild(n);
+        }
+        cell.appendChild(el);
+      });
+
+      grid.appendChild(cell);
+    });
+    wc.appendChild(grid);
+  });
+
+  // Footer
+  document.getElementById("footerText").textContent = status==="live"
+    ? "LR Events: Live via Google Calendar API · Other layers: D47 · D155 · Park District · Downtown CL · The Dole"
+    : "LR Events: Snapshot · Other layers: D47 · D155 · Park District · Downtown CL · The Dole";
+}
+
+// Fetch live data
+fetch(PROXY + "?action=gcal")
+  .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+  .then(function(data){
+    var items = data.items || [];
+    lrEvents = items.map(function(item){
+      var date = item.start.date || (item.start.dateTime ? item.start.dateTime.split("T")[0] : null);
+      var time = parseTime(item);
+      var desc = item.description ? item.description.replace(/<[^>]*>/g,"").trim() : "";
+      if (desc.length > 120) desc = desc.substring(0,120) + "…";
+      var note = [time, desc].filter(Boolean).join(" · ") || null;
+      return { date:date, cat:"lr", title:item.summary||"Untitled", note:note };
+    }).filter(function(e){ return e.date; });
+    status = lrEvents.length > 0 ? "live" : "snapshot";
+    render();
+  })
+  .catch(function(){
+    status = "snapshot";
+    render();
+  });
+
+render();
+</script>
+</body>
+</html>
