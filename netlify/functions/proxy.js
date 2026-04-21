@@ -106,6 +106,24 @@ exports.handler = async function(event) {
   var params = event.queryStringParameters || {};
   var action = params.action || "snapshot";
 
+  if (action === "gcal") {
+    var GCAL_ID = "c_24d940ceb14ec4f78275e07b87750bd6210c23677de391dc321d4fd9b41370e1%40group.calendar.google.com";
+    var GCAL_KEY = "AIzaSyDWPZz5s11EXRQl5fqE2OhPcnNjXrkniI0";
+    var now = new Date();
+    var sixMonthsAgo = new Date(now);
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    var sixMonthsOut = new Date(now);
+    sixMonthsOut.setMonth(sixMonthsOut.getMonth() + 6);
+    var gcalUrl = "https://www.googleapis.com/calendar/v3/calendars/" + GCAL_ID + "/events"
+      + "?key=" + GCAL_KEY
+      + "&timeMin=" + sixMonthsAgo.toISOString()
+      + "&timeMax=" + sixMonthsOut.toISOString()
+      + "&singleEvents=true&orderBy=startTime&maxResults=250";
+    return new Promise(function(resolve) {
+      fetchWithRedirect(gcalUrl, 0, resolve);
+    });
+  }
+
   if (action === "sling") {
     var from = params.from;
     var to = params.to;
