@@ -108,7 +108,7 @@ exports.handler = async function(event) {
 
   if (action === "gcal") {
     var GCAL_ID = "c_24d940ceb14ec4f78275e07b87750bd6210c23677de391dc321d4fd9b41370e1%40group.calendar.google.com";
-    var GCAL_KEY = "AIzaSyDWPZz5s11EXRQl5fqE2OhPcnNjXrkniI0";
+    var GCAL_KEY = process.env.GCAL_API_KEY;
     var now = new Date();
     var sixMonthsAgo = new Date(now);
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
