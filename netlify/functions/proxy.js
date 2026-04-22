@@ -151,7 +151,7 @@ exports.handler = async function(event) {
     }
   }
 
-  var VALID_ACTIONS = ["snapshot","today","reviews","dowavg","topwtd","topmtd","topytd","retailwtd","retailmtd","retailytd","intake","openitems"];
+  var VALID_ACTIONS = ["snapshot","today","reviews","dowavg","topwtd","topmtd","topytd","retailwtd","retailmtd","retailytd","intake","openitems","item","snacks","top10","daily","itemmix","labor","market","detail"];
   if (VALID_ACTIONS.indexOf(action) === -1) {
     return {
       statusCode: 400,
