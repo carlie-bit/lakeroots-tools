@@ -151,7 +151,7 @@ exports.handler = async function(event) {
     }
   }
 
-  var VALID_ACTIONS = ["snapshot","today","reviews","dowavg","topwtd","topmtd","topytd","toptoday","topyesterday","toplastmonth","retailwtd","retailmtd","retailytd","intake","openitems","item","snacks","top10","daily","itemmix","labor","market","detail","catsales","lifetime"];
+  var VALID_ACTIONS = ["snapshot","today","reviews","dowavg","topwtd","topmtd","topytd","toptoday","topyesterday","toplastmonth","retailwtd","retailmtd","retailytd","intake","openitems","item","snacks","top10","daily","itemmix","labor","market","detail","catsales","lifetime","vendors_active"];
   if (VALID_ACTIONS.indexOf(action) === -1) {
     return {
       statusCode: 400,
