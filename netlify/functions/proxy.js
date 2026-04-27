@@ -151,7 +151,7 @@ exports.handler = async function(event) {
     }
   }
 
-  var VALID_ACTIONS = ["snapshot","today","reviews","dowavg","topwtd","topmtd","topytd","toptoday","topyesterday","toplastmonth","retailwtd","retailmtd","retailytd","intake","openitems","item","snacks","top10","daily","itemmix","labor","market","detail","catsales","lifetime","vendors_active"];
+  var VALID_ACTIONS = ["snapshot","today","reviews","dowavg","topwtd","topmtd","topytd","toptoday","topyesterday","toplastmonth","retailwtd","retailmtd","retailytd","intake","openitems","item","snacks","top10","daily","itemmix","labor","market","detail","catsales","lifetime","vendors_active","vendor_update","vendor_create"];
   if (VALID_ACTIONS.indexOf(action) === -1) {
     return {
       statusCode: 400,
@@ -160,12 +160,13 @@ exports.handler = async function(event) {
     };
   }
 
-  var item = params.item || "";
-  var cat  = params.cat  || "";
   var GAS_URL = "https://script.google.com/macros/s/AKfycbze-3pGiyMcJigvO_N0MPs4E5tnvI3AZz7FO4oNP30d8DKW8p1duwB7jTgdcBgKIEQMnw/exec";
-  var url = GAS_URL + "?action=" + action;
-  if (item) url += "&item=" + encodeURIComponent(item);
-  if (cat)  url += "&cat="  + encodeURIComponent(cat);
+  var url = GAS_URL + "?action=" + encodeURIComponent(action);
+  for (var key in params) {
+    if (key === "action") continue;
+    if (!params.hasOwnProperty(key)) continue;
+    url += "&" + encodeURIComponent(key) + "=" + encodeURIComponent(params[key] == null ? "" : params[key]);
+  }
 
   return new Promise(function(resolve) {
     fetchWithRedirect(url, 0, resolve);
