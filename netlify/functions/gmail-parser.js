@@ -3,7 +3,7 @@ const https = require("https");
 // ── CONFIG ──────────────────────────────────────────────────
 const DRY_RUN = process.env.GMAIL_PARSER_DRY_RUN === "true";
 
-const GMAIL_SEARCH = "from:no-reply@toasttab.com subject:\"New Event lead:\" -label:Toast-Parsed -label:Toast-Parse-Failed";
+const GMAIL_SEARCH = "from:no-reply@toasttab.com subject:\"New Event lead:\" -label:Toast-Parsed";
 
 const LABEL_PARSED = "Toast-Parsed";
 const LABEL_FAILED = "Toast-Parse-Failed";
