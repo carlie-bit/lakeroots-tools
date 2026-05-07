@@ -3,7 +3,7 @@ const https = require("https");
 // ── CONFIG ──────────────────────────────────────────────────
 const DRY_RUN = process.env.GMAIL_PARSER_DRY_RUN === "true";
 
-const GMAIL_SEARCH = "from:no-reply@toasttab.com subject:\"New Event lead:\" -label:Toast-Parsed -label:Toast-Parse-Failed";
+const GMAIL_SEARCH = 'from:no-reply@toasttab.com {subject:"New Event lead:" subject:"New Catering lead:"} -label:Toast-Parsed -label:Toast-Parse-Failed';
 
 const LABEL_PARSED = "Toast-Parsed";
 const LABEL_FAILED = "Toast-Parse-Failed";
@@ -249,8 +249,9 @@ function parseToastEmail(msg) {
   const rawBody = getMessageBody(msg);
   const body = stripHtml(rawBody);
 
-  // Extract contact name from subject: "New Event lead: [Name]"
-  const nameFromSubject = subject.replace(/^New Event lead:\s*/i, "").trim();
+  // Extract contact name from subject: "New Event lead: [Name]" or "New Catering lead: [Name]"
+  const isCatering = /^New Catering lead:/i.test(subject);
+  const nameFromSubject = subject.replace(/^New (Event|Catering) lead:\s*/i, "").trim();
 
   const name = extractField(body, "NAME") || nameFromSubject || null;
   const email = extractField(body, "EMAIL") || null;
@@ -287,9 +288,9 @@ function parseToastEmail(msg) {
     event_end_time: parseTime(endTimeStr),
     occasion: occasion,
     guest_count_expected: guestCountNum,
-    toast_inquiry_notes: [notes, spacePreference ? `Space preference: ${spacePreference}` : ""].filter(Boolean).join("\n") || null,
+    toast_inquiry_notes: [isCatering ? "CATERING LEAD" : "", notes, spacePreference ? `Space preference: ${spacePreference}` : ""].filter(Boolean).join("\n") || null,
     status: "new_inquiry",
-    event_type: "onsite_private",
+    event_type: isCatering ? "catering" : "onsite_private",
     source: "toast_lead",
     toast_lead_url: toastLeadUrl || (msg.threadId ? `https://mail.google.com/mail/u/0/#inbox/${msg.threadId}` : null),
     created_at: emailDate,
