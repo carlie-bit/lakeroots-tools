@@ -45,7 +45,7 @@ a.ev:hover{opacity:0.75;}
 <body>
 <div class="hdr"><div class="hdr-in">
   <div class="t-row"><span class="t-main">LAKE ROOTS</span><span class="t-sub">MASTER CALENDAR</span></div>
-  <div class="st-row">April – September 2026 <span id="badge" style="color:#99BAB4;margin-left:8px;opacity:0.6">○ Connecting…</span></div>
+  <div class="st-row"><span id="badge" style="color:#99BAB4;opacity:0.6">○ Connecting…</span></div>
   <div class="lyr" id="btns"></div>
 </div></div>
 <div class="dh"><div class="dhg" id="dh"></div></div>
@@ -54,6 +54,12 @@ a.ev:hover{opacity:0.75;}
 
 <script>
 var P="/.netlify/functions/proxy";
+
+// Dynamic date range: 6 months back, 6 months forward
+var now=new Date();
+var rangeStart=new Date(now.getFullYear(),now.getMonth()-6,1);
+var rangeEnd=new Date(now.getFullYear(),now.getMonth()+7,0);
+
 var C={
   lr:{l:"LAKE ROOTS",bg:"#E2F0E9",br:"#6B9E7E",tx:"#2D5A3E"},
   holiday:{l:"HOLIDAY",bg:"#F9E4E4",br:"#D4868A",tx:"#8B3A3E"},
@@ -66,8 +72,10 @@ var C={
   community:{l:"OTHER COMMUNITY",bg:"#F5EFDC",br:"#A89868",tx:"#5C4F2E"},
   deadline:{l:"LR DEADLINE",bg:"#F5E6F0",br:"#B07AAC",tx:"#6B3A68"}
 };
+
+// Static events — only future-relevant ones will show based on date range
 var S=[
-  {d:"2026-05-05",c:"holiday",t:"Cinco de Mayo",u:""},{d:"2026-05-10",c:"holiday",t:"Mother's Day",u:""},{d:"2026-05-25",c:"holiday",t:"Memorial Day",u:""},{d:"2026-06-14",c:"holiday",t:"Flag Day",u:""},{d:"2026-06-19",c:"holiday",t:"Juneteenth",u:""},{d:"2026-06-21",c:"holiday",t:"Father's Day",u:""},{d:"2026-07-04",c:"holiday",t:"Independence Day",u:""},{d:"2026-09-07",c:"holiday",t:"Labor Day",u:""},
+  {d:"2026-05-05",c:"holiday",t:"Cinco de Mayo",u:""},{d:"2026-05-10",c:"holiday",t:"Mother's Day",u:""},{d:"2026-05-25",c:"holiday",t:"Memorial Day",u:""},{d:"2026-06-14",c:"holiday",t:"Flag Day",u:""},{d:"2026-06-19",c:"holiday",t:"Juneteenth",u:""},{d:"2026-06-21",c:"holiday",t:"Father's Day",u:""},{d:"2026-07-04",c:"holiday",t:"Independence Day",u:""},{d:"2026-09-07",c:"holiday",t:"Labor Day",u:""},{d:"2026-11-26",c:"holiday",t:"Thanksgiving",u:""},{d:"2026-12-25",c:"holiday",t:"Christmas",u:""},
   {d:"2026-04-22",c:"d47",t:"Early Release",ti:"K-8",u:"https://www.d47.org/families/calendar"},{d:"2026-05-13",c:"d47",t:"Early Release",ti:"K-8",u:"https://www.d47.org/families/calendar"},{d:"2026-05-20",c:"d47",t:"Last Day PreK/K",u:"https://www.d47.org/families/calendar"},{d:"2026-05-21",c:"d47",t:"Last Day Grades 1-8",u:"https://www.d47.org/families/calendar"},{d:"2026-08-12",c:"d47",t:"Teacher Institute",ti:"Aug 12-15",u:"https://www.d47.org/families/calendar"},{d:"2026-08-18",c:"d47",t:"First Day Grades 1-8",u:"https://www.d47.org/families/calendar"},{d:"2026-08-19",c:"d47",t:"First Day PreK/K",u:"https://www.d47.org/families/calendar"},
   {d:"2026-04-24",c:"d155",t:"Early Release",ti:"12:53pm",u:"https://www.d155.org/about/d155-upcoming-events-full-calendar"},{d:"2026-05-16",c:"d155",t:"Graduation",ti:"10am",u:"https://www.d155.org/about/d155-upcoming-events-full-calendar"},{d:"2026-05-19",c:"d155",t:"Finals Begin",u:"https://www.d155.org/about/d155-upcoming-events-full-calendar"},{d:"2026-05-20",c:"d155",t:"Last Day",u:"https://www.d155.org/about/d155-upcoming-events-full-calendar"},{d:"2026-08-19",c:"d155",t:"First Day",u:"https://www.d155.org/about/d155-upcoming-events-full-calendar"},
   {d:"2026-05-26",c:"parkdist",t:"Concerts Begin",ti:"Tuesdays 7pm",u:"https://www.crystallakeparks.org/special-events"},{d:"2026-06-02",c:"parkdist",t:"Concert in the Park",ti:"7pm",u:"https://www.crystallakeparks.org/special-events"},{d:"2026-06-09",c:"parkdist",t:"Concert in the Park",ti:"7pm",u:"https://www.crystallakeparks.org/special-events"},{d:"2026-06-16",c:"parkdist",t:"Concert in the Park",ti:"7pm",u:"https://www.crystallakeparks.org/special-events"},{d:"2026-06-23",c:"parkdist",t:"Concert in the Park",ti:"7pm",u:"https://www.crystallakeparks.org/special-events"},{d:"2026-06-30",c:"parkdist",t:"Concert in the Park",ti:"7pm",u:"https://www.crystallakeparks.org/special-events"},{d:"2026-07-07",c:"parkdist",t:"Concert in the Park",ti:"7pm",u:"https://www.crystallakeparks.org/special-events"},{d:"2026-07-14",c:"parkdist",t:"Concert in the Park",ti:"7pm",u:"https://www.crystallakeparks.org/special-events"},{d:"2026-07-18",c:"parkdist",t:"Cardboard Regatta",ti:"Main Beach",u:"https://cardboardregatta.org/"},{d:"2026-07-21",c:"parkdist",t:"Concert in the Park",ti:"7pm",u:"https://www.crystallakeparks.org/special-events"},{d:"2026-07-28",c:"parkdist",t:"Concert in the Park",ti:"7pm",u:"https://www.crystallakeparks.org/special-events"},{d:"2026-08-04",c:"parkdist",t:"Concert in the Park",ti:"7pm (final)",u:"https://www.crystallakeparks.org/special-events"},
@@ -77,33 +85,68 @@ var S=[
   {d:"2026-04-16",c:"community",t:"Women in Wealth",ti:"Fork It Foods, 6pm",u:""},{d:"2026-04-22",c:"community",t:"Earth Day",u:""},{d:"2026-04-25",c:"community",t:"BMW Cars & Coffee",ti:"9am",u:""},{d:"2026-05-09",c:"community",t:"Mom Fest at The Quarry",ti:"10am",u:""},{d:"2026-05-22",c:"community",t:"Jump Into Summer",ti:"Quarry, 7:30pm",u:""},
   {d:"2026-05-31",c:"deadline",t:"Liquor License Renewal",ti:"Class 29 #2025-125",u:""}
 ];
+
 var ly={lr:true,deadline:false,holiday:false,d47:false,d155:false,parkdist:false,dole:false,raue:false,downtowncl:false,community:false};
 var lrE=[];var st="loading";
+
 function pt(i){if(!i.start||!i.start.dateTime)return null;var d=new Date(i.start.dateTime),h=d.getHours(),m=d.getMinutes();var h2=h%12||12,a=h>=12?"pm":"am",ms=m>0?":"+String(m).padStart(2,"0"):"";var t=h2+ms+a;if(i.end&&i.end.dateTime){var e=new Date(i.end.dateTime),eh=e.getHours(),em=e.getMinutes();t+="\u2013"+(eh%12||12)+(em>0?":"+String(em).padStart(2,"0"):"")+((eh>=12)?"pm":"am");}return t;}
 function xl(r){if(!r)return[];var m=r.match(/(https?:\/\/[^\s<>"]+)/g);return m||[];}
 function fmt(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function gw(s,e){var w=[],c=new Date(s);var d=c.getDay();c.setDate(c.getDate()+(d===0?-6:1-d));var en=new Date(e);while(c<=en){var wk=[];for(var i=0;i<7;i++){wk.push(new Date(c));c.setDate(c.getDate()+1);}w.push(wk);}return w;}
 function it(d){var t=new Date();return d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate();}
 function ef(ds){var all=lrE.concat(S.map(function(e){return{date:e.d,cat:e.c,title:e.t,time:e.ti||null,url:e.u||null};}));return all.filter(function(e){return e.date===ds&&ly[e.cat];});}
-function render(){
-  var weeks=gw("2026-04-13","2026-09-27");var DN=["MON","TUE","WED","THU","FRI","SAT","SUN"];
+
+function render(scrollToToday){
+  var weeks=gw(fmt(rangeStart),fmt(rangeEnd));
+  var DN=["MON","TUE","WED","THU","FRI","SAT","SUN"];
   var b=document.getElementById("badge");
   if(st==="live"){b.style.color="#6B9E7E";b.style.opacity="1";b.textContent="\u25CF Live";}
   else if(st==="snap"){b.style.color="#C9A45C";b.style.opacity="1";b.textContent="\u25CF Offline";}
   else{b.style.color="#99BAB4";b.style.opacity="0.6";b.textContent="\u25CB Connecting\u2026";}
+
   var lb=document.getElementById("btns");lb.innerHTML='<span class="lyr-l">LAYERS:</span>';
-  Object.keys(C).forEach(function(k){var v=C[k],on=ly[k];var btn=document.createElement("button");btn.className="lb"+(on?" on":"");btn.style.border=on?"2px solid "+v.br:"2px solid rgba(255,255,255,0.1)";btn.style.background=on?v.bg:"rgba(255,255,255,0.03)";btn.style.color=on?v.tx:"rgba(239,219,178,0.3)";var tag=k==="lr"&&st==="live"?"LIVE":(on?"ON":"OFF");btn.innerHTML='<span class="ld" style="background:'+(on?v.br:"rgba(255,255,255,0.12)")+'"></span>'+v.l+' <span style="font-size:8px;opacity:0.6">'+tag+'</span>';btn.onclick=function(){ly[k]=!ly[k];render();};lb.appendChild(btn);});
-  var dh=document.getElementById("dh");dh.innerHTML="";DN.forEach(function(d){var e=document.createElement("div");e.className="dhl";e.textContent=d;dh.appendChild(e);});
-  var wc=document.getElementById("wks");wc.innerHTML="";var pm=-1;
-  weeks.forEach(function(wk){var mid=wk[3],tm=mid.getMonth();if(tm!==pm){pm=tm;var mh=document.createElement("div");mh.className="mh";var ms=document.createElement("span");ms.textContent=mid.toLocaleDateString("en-US",{month:"long",year:"numeric"});mh.appendChild(ms);wc.appendChild(mh);}
+  Object.keys(C).forEach(function(k){var v=C[k],on=ly[k];var btn=document.createElement("button");btn.className="lb"+(on?" on":"");btn.style.border=on?"2px solid "+v.br:"2px solid rgba(255,255,255,0.1)";btn.style.background=on?v.bg:"rgba(255,255,255,0.03)";btn.style.color=on?v.tx:"rgba(239,219,178,0.3)";var tag=k==="lr"&&st==="live"?"LIVE":(on?"ON":"OFF");btn.innerHTML='<span class="ld" style="background:'+(on?v.br:"rgba(255,255,255,0.12)")+'"></span>'+v.l+' <span style="font-size:8px;opacity:0.6">'+tag+'</span>';btn.onclick=function(){ly[k]=!ly[k];render(false);};lb.appendChild(btn);});
+
+  var dh=document.getElementById("dh");dh.innerHTML="";
+  DN.forEach(function(d){var e=document.createElement("div");e.className="dhl";e.textContent=d;dh.appendChild(e);});
+
+  var wc=document.getElementById("wks");wc.innerHTML="";
+  var pm=-1;var todayId=null;
+  weeks.forEach(function(wk){
+    var mid=wk[3],tm=mid.getMonth();
+    if(tm!==pm){
+      pm=tm;
+      var mh=document.createElement("div");mh.className="mh";
+      // Create anchor for scrolling
+      var thisMonth=mid.getMonth(),thisYear=mid.getFullYear();
+      var todayMonth=now.getMonth(),todayYear=now.getFullYear();
+      if(thisMonth===todayMonth&&thisYear===todayYear){mh.id="current-month";todayId="current-month";}
+      var ms=document.createElement("span");
+      ms.textContent=mid.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+      mh.appendChild(ms);wc.appendChild(mh);
+    }
     var g=document.createElement("div");g.className="wg";
     wk.forEach(function(day,di){var ds=fmt(day),evts=ef(ds),td=it(day),we=di>=5;var cell=document.createElement("div");cell.className="dc"+(td?" td":"")+(we&&!td?" we":"");var num=document.createElement("div");num.className="dn"+(td?" td":"");if(td)num.innerHTML='<span class="td-dot"></span>'+day.getDate();else num.textContent=day.getDate();cell.appendChild(num);
       evts.forEach(function(evt){var cat=C[evt.cat];var el=document.createElement("a");el.className="ev";el.style.background=cat.bg;el.style.borderLeft="3px solid "+cat.br;el.style.color=cat.tx;if(evt.url){el.href=evt.url;el.target="_blank";}el.textContent=evt.title;if(evt.time){var te=document.createElement("div");te.className="ev-t";te.textContent=evt.time;el.appendChild(te);}cell.appendChild(el);});
       g.appendChild(cell);});wc.appendChild(g);});
+
   document.getElementById("ft").innerHTML=st==="live"?"LAKE ROOTS EVENTS: LIVE VIA GOOGLE CALENDAR \u00B7 CLICK ANY EVENT TO OPEN SOURCE":"CONNECTING\u2026";
+
+  // Auto-scroll to current month on first load
+  if(scrollToToday&&todayId){
+    setTimeout(function(){
+      var el=document.getElementById(todayId);
+      if(el)el.scrollIntoView({behavior:"smooth",block:"start"});
+    },100);
+  }
 }
-fetch(P+"?action=gcal").then(function(r){if(!r.ok)throw new Error(r.status);return r.json();}).then(function(data){var items=data.items||[];lrE=items.map(function(i){var date=i.start.date||(i.start.dateTime?i.start.dateTime.split("T")[0]:null);var time=pt(i);var raw=i.description||"";var links=xl(raw);var url=i.htmlLink||"";for(var j=0;j<links.length;j++){if(links[j].indexOf("toasttab.com/restaurants/admin/invoices/events")>-1||links[j].indexOf("toasttab.com/restaurants/admin/invoices/leads")>-1){url=links[j];break;}}return{date:date,cat:"lr",title:i.summary||"Untitled",time:time,url:url};}).filter(function(e){return e.date;});st=lrE.length>0?"live":"snap";render();}).catch(function(){st="snap";render();});
-render();
+
+fetch(P+"?action=gcal")
+  .then(function(r){if(!r.ok)throw new Error(r.status);return r.json();})
+  .then(function(data){var items=data.items||[];lrE=items.map(function(i){var date=i.start.date||(i.start.dateTime?i.start.dateTime.split("T")[0]:null);var time=pt(i);var raw=i.description||"";var links=xl(raw);var url=i.htmlLink||"";for(var j=0;j<links.length;j++){if(links[j].indexOf("toasttab.com/restaurants/admin/invoices/events")>-1||links[j].indexOf("toasttab.com/restaurants/admin/invoices/leads")>-1){url=links[j];break;}}return{date:date,cat:"lr",title:i.summary||"Untitled",time:time,url:url};}).filter(function(e){return e.date;});st=lrE.length>0?"live":"snap";render(true);})
+  .catch(function(){st="snap";render(true);});
+
+render(false);
 </script>
 </body>
 </html>
