@@ -3,3 +3,37 @@
 
 [functions."gmail-parser"]
   schedule = "@hourly"
+
+# Routing. Netlify serves real files (calendar.html, *.html, fonts) and
+# /.netlify/functions/* BEFORE these rules, so this only affects paths that
+# would otherwise 404. First match wins, so specific rules come before /*.
+
+# Bare domain -> calendar (no index.html exists at the publish root)
+[[redirects]]
+  from = "/"
+  to = "/calendar.html"
+  status = 200
+
+# Clean URL for the calendar
+[[redirects]]
+  from = "/calendar"
+  to = "/calendar.html"
+  status = 200
+
+# Preserve extensionless access to the other tools on this site
+# (otherwise the /* catch-all below would send them to the calendar)
+[[redirects]]
+  from = "/purchasing-insight"
+  to = "/purchasing-insight.html"
+  status = 200
+
+[[redirects]]
+  from = "/top10-weekly"
+  to = "/top10-weekly.html"
+  status = 200
+
+# 404 fallback: any mistyped path lands on the calendar, not Netlify's page
+[[redirects]]
+  from = "/*"
+  to = "/calendar.html"
+  status = 200

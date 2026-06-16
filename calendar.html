@@ -45,7 +45,7 @@ a.ev:hover{opacity:0.75;}
 <body>
 <div class="hdr"><div class="hdr-in">
   <div class="t-row"><span class="t-main">LAKE ROOTS</span><span class="t-sub">MASTER CALENDAR</span></div>
-  <div class="st-row"><span id="badge" style="color:#99BAB4;opacity:0.6">○ Connecting…</span></div>
+  <div class="st-row"><span id="badge" style="color:#99BAB4;opacity:0.6">○ Connecting…</span><span id="snapnote" style="margin-left:10px;font-size:8px;letter-spacing:0.5px;color:#C9A45C;opacity:0.75"></span></div>
   <div class="lyr" id="btns"></div>
 </div></div>
 <div class="dh"><div class="dhg" id="dh"></div></div>
@@ -88,6 +88,13 @@ var S=[
 
 var ly={lr:true,deadline:false,holiday:false,d47:false,d155:false,parkdist:false,dole:false,raue:false,downtowncl:false,community:false};
 var lrE=[];var st="loading";
+
+// S[] above is a MANUAL snapshot, not live data. Bump this when you edit S[].
+var SNAP_DATE="MAY 12 2026";
+// When the live LR feed is empty/offline, turn the static community/holiday
+// layers on so the fallback is visible instead of a blank calendar.
+function enableStatic(){Object.keys(ly).forEach(function(k){if(k!=="lr")ly[k]=true;});}
+document.getElementById("snapnote").textContent="COMMUNITY/HOLIDAY: MANUAL SNAPSHOT · AS OF "+SNAP_DATE;
 
 function pt(i){if(!i.start||!i.start.dateTime)return null;var d=new Date(i.start.dateTime),h=d.getHours(),m=d.getMinutes();var h2=h%12||12,a=h>=12?"pm":"am",ms=m>0?":"+String(m).padStart(2,"0"):"";var t=h2+ms+a;if(i.end&&i.end.dateTime){var e=new Date(i.end.dateTime),eh=e.getHours(),em=e.getMinutes();t+="\u2013"+(eh%12||12)+(em>0?":"+String(em).padStart(2,"0"):"")+((eh>=12)?"pm":"am");}return t;}
 function xl(r){if(!r)return[];var m=r.match(/(https?:\/\/[^\s<>"]+)/g);return m||[];}
@@ -143,8 +150,8 @@ function render(scrollToToday){
 
 fetch(P+"?action=gcal")
   .then(function(r){if(!r.ok)throw new Error(r.status);return r.json();})
-  .then(function(data){var items=data.items||[];lrE=items.map(function(i){var date=i.start.date||(i.start.dateTime?i.start.dateTime.split("T")[0]:null);var time=pt(i);var raw=i.description||"";var links=xl(raw);var url=i.htmlLink||"";for(var j=0;j<links.length;j++){if(links[j].indexOf("toasttab.com/restaurants/admin/invoices/events")>-1||links[j].indexOf("toasttab.com/restaurants/admin/invoices/leads")>-1){url=links[j];break;}}return{date:date,cat:"lr",title:i.summary||"Untitled",time:time,url:url};}).filter(function(e){return e.date;});st=lrE.length>0?"live":"snap";render(true);})
-  .catch(function(){st="snap";render(true);});
+  .then(function(data){var items=data.items||[];lrE=items.map(function(i){var date=i.start.date||(i.start.dateTime?i.start.dateTime.split("T")[0]:null);var time=pt(i);var raw=i.description||"";var links=xl(raw);var url=i.htmlLink||"";for(var j=0;j<links.length;j++){if(links[j].indexOf("toasttab.com/restaurants/admin/invoices/events")>-1||links[j].indexOf("toasttab.com/restaurants/admin/invoices/leads")>-1){url=links[j];break;}}return{date:date,cat:"lr",title:i.summary||"Untitled",time:time,url:url};}).filter(function(e){return e.date;});st=lrE.length>0?"live":"snap";if(st==="snap")enableStatic();render(true);})
+  .catch(function(){st="snap";enableStatic();render(true);});
 
 render(false);
 </script>
